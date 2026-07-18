@@ -39,19 +39,19 @@ const latestPosts = (await getCollection('blog'))
 				<h2 id="services-title">Launch deck</h2>
 			</div>
 			<div class="service-tools">
-				<label class="service-search">
-					<span aria-hidden="true">⌕</span>
-					<input type="search" placeholder="Filter services" data-service-search />
-				</label>
-				<button class="add-service" type="button" data-add-service>＋ Add subdomain</button>
-			</div>
-		</div>
-		<div class="filter-row" role="group" aria-label="Filter service category">
-			<button class="filter-chip active" type="button" data-filter="All">All</button>
-			<button class="filter-chip" type="button" data-filter="Infra">Infra</button>
-			<button class="filter-chip" type="button" data-filter="AI">AI</button>
-			<button class="filter-chip" type="button" data-filter="Dev">Dev</button>
-		</div>
+						<label class="service-search">
+							<span aria-hidden="true">⌕</span>
+							<input type="search" placeholder="Filter services" aria-label="Search services" data-service-search />
+						</label>
+						<button class="add-service" type="button" data-add-service>＋ Add subdomain</button>
+					</div>
+				</div>
+				<div class="filter-row" role="group" aria-label="Filter service category">
+					<button class="filter-chip active" type="button" data-filter="All" aria-pressed="true">All</button>
+					<button class="filter-chip" type="button" data-filter="Infra" aria-pressed="false">Infra</button>
+					<button class="filter-chip" type="button" data-filter="AI" aria-pressed="false">AI</button>
+					<button class="filter-chip" type="button" data-filter="Dev" aria-pressed="false">Dev</button>
+				</div>
 		<div class="service-list" data-service-list>
 			{services.map((service, index) => (
 				<a
@@ -140,7 +140,7 @@ const latestPosts = (await getCollection('blog'))
 			<label>ชื่อ service<input required name="name" maxlength="30" placeholder="Grafana" /></label>
 			<label>Subdomain หรือ URL<input required name="host" placeholder="grafana.inontz.me" /></label>
 			<label>หมวดหมู่<select name="category"><option>Infra</option><option>AI</option><option>Dev</option></select></label>
-			<div class="modal-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" data-add-save>Save shortcut</button></div>
+			<div class="modal-actions"><button class="button secondary" type="button" value="cancel">Cancel</button><button class="button primary" type="submit" value="default" data-add-save>Save shortcut</button></div>
 		</form>
 	</dialog>
 </PortalLayout>
@@ -166,8 +166,8 @@ const latestPosts = (await getCollection('blog'))
 	};
 	search?.addEventListener('input', filterServices);
 	document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => {
-		activeFilter = button.dataset.filter; document.querySelectorAll('[data-filter]').forEach((item) => item.classList.toggle('active', item === button)); filterServices();
-	}));
+			activeFilter = button.dataset.filter; document.querySelectorAll('[data-filter]').forEach((item) => { item.classList.toggle('active', item === button); item.setAttribute('aria-pressed', String(item === button)); }); filterServices();
+		}));
 
 	const addDialog = document.querySelector('[data-add-dialog]');
 	const addForm = document.querySelector('[data-add-form]');
@@ -183,15 +183,15 @@ const latestPosts = (await getCollection('blog'))
 		}); filterServices();
 	};
 	renderCustom();
-	document.querySelector('[data-add-service]')?.addEventListener('click', () => addDialog?.showModal());
-	addForm?.querySelector('[name="host"]')?.addEventListener('input', (event) => event.currentTarget.setCustomValidity(''));
-	document.querySelector('[data-add-save]')?.addEventListener('click', (event) => {
-		if (!addForm?.reportValidity()) { event.preventDefault(); return; }
-		const data = new FormData(addForm); const rawHost = String(data.get('host') || '').trim();
-		let url; try { url = new URL(/^https?:\/\//i.test(rawHost) ? rawHost : `https://${rawHost}`); } catch { event.preventDefault(); addForm.querySelector('[name="host"]')?.setCustomValidity('กรุณาใส่ subdomain หรือ URL ให้ถูกต้อง'); addForm.reportValidity(); return; }
-		const items = getCustom(); items.push({ name: String(data.get('name')), host: url.host, url: url.href, category: String(data.get('category')) }); localStorage.setItem(storageKey, JSON.stringify(items)); addForm.reset(); renderCustom(); addDialog.close();
-	});
-	addDialog?.addEventListener('click', (event) => { if (event.target === addDialog) addDialog.close(); });
+		addForm?.addEventListener('submit', (event) => {
+			event.preventDefault();
+			if (!addForm?.reportValidity()) return;
+			const data = new FormData(addForm); const rawHost = String(data.get('host') || '').trim();
+			let url; try { url = new URL(/^https?:\/\//i.test(rawHost) ? rawHost : `https://${rawHost}`); } catch { addForm.querySelector('[name="host"]')?.setCustomValidity('กรุณาใส่ subdomain หรือ URL ให้ถูกต้อง'); addForm.reportValidity(); return; }
+			const items = getCustom(); items.push({ name: String(data.get('name')), host: url.host, url: url.href, category: String(data.get('category')) }); localStorage.setItem(storageKey, JSON.stringify(items)); addForm.reset(); renderCustom(); addDialog.close();
+		});
+		addForm?.querySelector('[name="host"]')?.addEventListener('input', (event) => event.currentTarget.setCustomValidity(''));
+		addDialog?.addEventListener('click', (event) => { if (event.target === addDialog) addDialog.close(); });
 
 	const focusTime = document.querySelector('[data-focus-time]'); const focusState = document.querySelector('[data-focus-state]'); const focusToggle = document.querySelector('[data-focus-toggle]'); const focusRing = document.querySelector('[data-timer-ring]');
 	const defaultTitle = document.title; let focusRemaining = 1500; let focusEnd = 0; let focusInterval;
