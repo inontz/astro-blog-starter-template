@@ -1,17 +1,11 @@
 // @ts-check
-import { defineConfig } from "astro/config";
-import mdx from "@astrojs/mdx";
-import sitemap from "@astrojs/sitemap";
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 
-import cloudflare from "@astrojs/cloudflare";
-
-// https://astro.build/config
+// Static output is deployed as Cloudflare Workers assets via wrangler.json.
 export default defineConfig({
-	site: "https://example.com",
+	site: 'https://inontz.me',
+	output: 'static',
 	integrations: [mdx(), sitemap()],
-	adapter: cloudflare({
-		platformProxy: {
-			enabled: true,
-		},
-	}),
 });

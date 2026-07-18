@@ -1,0 +1,36 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+---
+<!doctype html>
+<html lang="th">
+	<head>
+		<script is:inline>
+			(() => {
+				const choice = localStorage.getItem('inontz-theme') || 'system';
+				document.documentElement.dataset.themeChoice = choice;
+				document.documentElement.dataset.theme = choice === 'system'
+					? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+					: choice;
+			})();
+		</script>
+		<BaseHead title={title} description={description} />
+	</head>
+	<body>
+		<a class="skip-link" href="#main-content">Skip to content</a>
+		<div class="ambient-grid" aria-hidden="true"></div>
+		<Header />
+		<main id="main-content" class="portal-main">
+			<slot />
+		</main>
+		<Footer />
+	</body>
+</html>
