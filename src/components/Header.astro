@@ -8,11 +8,14 @@ import HeaderLink from './HeaderLink.astro';
 			<span class="wordmark-glyph" aria-hidden="true">N</span>
 			<span>NON<span class="wordmark-dim">/LAB</span></span>
 		</a>
-		<div class="internal-links">
-			<HeaderLink href="/">Portal</HeaderLink>
-			<HeaderLink href="/portfolio">Portfolio</HeaderLink>
-			<HeaderLink href="/blog">Notes</HeaderLink>
+		<div class="internal-links" id="internal-links">
+			<HeaderLink href="/" data-command="Portal" data-command-meta="Home">Portal</HeaderLink>
+			<HeaderLink href="/portfolio" data-command="Portfolio" data-command-meta="Showcase">Portfolio</HeaderLink>
+			<HeaderLink href="/blog" data-command="Notes" data-command-meta="Blog">Notes</HeaderLink>
 		</div>
+		<button class="mobile-menu-trigger" type="button" hidden aria-expanded="false" aria-controls="internal-links" aria-label="Toggle navigation">
+			<span aria-hidden="true">≡</span>
+		</button>
 		<div class="nav-actions">
 			<button class="command-trigger" type="button" data-command-open aria-label="Open command palette">
 				<span>Jump to</span><kbd>⌘ K</kbd>
@@ -41,18 +44,18 @@ import HeaderLink from './HeaderLink.astro';
 	(() => {
 		const root = document.documentElement;
 		const media = window.matchMedia('(prefers-color-scheme: dark)');
-		const stored = localStorage.getItem('inontz-theme') || 'system';
+		const stored = (() => { try { return localStorage.getItem('inontz-theme') || 'system'; } catch { return 'system'; } })();
 		const applyTheme = (choice) => {
 			root.dataset.themeChoice = choice;
 			root.dataset.theme = choice === 'system' ? (media.matches ? 'dark' : 'light') : choice;
-			localStorage.setItem('inontz-theme', choice);
+			try { localStorage.setItem('inontz-theme', choice); } catch {}
 			document.querySelectorAll('[data-theme-value]').forEach((button) => {
 				button.setAttribute('aria-pressed', String(button.dataset.themeValue === choice));
 			});
 		};
 		applyTheme(stored);
 		media.addEventListener('change', () => {
-			if ((localStorage.getItem('inontz-theme') || 'system') === 'system') applyTheme('system');
+			if (((() => { try { return localStorage.getItem('inontz-theme') || 'system'; } catch { return 'system'; } })()) === 'system') applyTheme('system');
 		});
 		document.querySelectorAll('[data-theme-value]').forEach((button) => {
 			button.addEventListener('click', () => applyTheme(button.dataset.themeValue));
@@ -106,5 +109,22 @@ import HeaderLink from './HeaderLink.astro';
 			if (event.key === 'Enter' && items[active]) { event.preventDefault(); window.location.href = items[active].href; }
 		});
 		dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+
+		const menuTrigger = document.querySelector('.mobile-menu-trigger');
+		const internalLinks = document.getElementById('internal-links');
+		if (menuTrigger && internalLinks) {
+			menuTrigger.hidden = false;
+			menuTrigger.addEventListener('click', () => {
+				const expanded = menuTrigger.getAttribute('aria-expanded') === 'true';
+				menuTrigger.setAttribute('aria-expanded', String(!expanded));
+				internalLinks.classList.toggle('open');
+			});
+			internalLinks.querySelectorAll('a').forEach((link) => {
+				link.addEventListener('click', () => {
+					internalLinks.classList.remove('open');
+					menuTrigger.setAttribute('aria-expanded', 'false');
+				});
+			});
+		}
 	})();
 </script>

@@ -172,16 +172,18 @@ const latestPosts = (await getCollection('blog'))
 	const addDialog = document.querySelector('[data-add-dialog]');
 	const addForm = document.querySelector('[data-add-form]');
 	const storageKey = 'inontz-custom-services';
-	const getCustom = () => { try { return JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch { return []; } };
+	const getCustom = () => { try { const v = JSON.parse(localStorage.getItem(storageKey) || '[]'); return Array.isArray(v) ? v : []; } catch { return []; } };
+	const isSafeUrl = (url) => { try { const u = new URL(url); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } };
 	const renderCustom = () => {
-		list?.querySelectorAll('[data-custom-service]').forEach((item) => item.remove());
-		getCustom().forEach((service, index) => {
-			const anchor = document.createElement('a'); anchor.className = 'service-item custom-service'; anchor.href = service.url; anchor.target = '_blank'; anchor.rel = 'noreferrer'; anchor.dataset.category = service.category; anchor.dataset.serviceName = `${service.name} ${service.host}`; anchor.dataset.command = service.name; anchor.dataset.commandMeta = service.host; anchor.dataset.customService = 'true'; anchor.style.setProperty('--service-accent', '#59d5c8');
-			const values = [['span', 'service-number', `L${index + 1}`], ['span', 'service-mark', '+'], ['span', 'service-host', service.host], ['span', 'service-category', service.category], ['span', 'service-arrow', '↗']];
-			values.forEach(([tag, className, text]) => { const el = document.createElement(tag); el.className = className; el.textContent = text; anchor.append(el); });
-			const copy = document.createElement('span'); copy.className = 'service-copy'; const strong = document.createElement('strong'); strong.textContent = service.name; const small = document.createElement('small'); small.textContent = 'Custom shortcut · คลิกขวาหรือเพิ่มใหม่เพื่อแก้ไข'; copy.append(strong, small); anchor.insertBefore(copy, anchor.children[2]); list?.append(anchor);
-		}); filterServices();
-	};
+			list?.querySelectorAll('[data-custom-service]').forEach((item) => item.remove());
+			getCustom().forEach((service, index) => {
+				if (!isSafeUrl(service.url)) return;
+				const anchor = document.createElement('a'); anchor.className = 'service-item custom-service'; anchor.href = service.url; anchor.target = '_blank'; anchor.rel = 'noreferrer'; anchor.dataset.category = service.category; anchor.dataset.serviceName = `${service.name} ${service.host}`; anchor.dataset.command = service.name; anchor.dataset.commandMeta = service.host; anchor.dataset.customService = 'true'; anchor.style.setProperty('--service-accent', '#59d5c8');
+				const values = [['span', 'service-number', `L${index + 1}`], ['span', 'service-mark', '+'], ['span', 'service-host', service.host], ['span', 'service-category', service.category], ['span', 'service-arrow', '↗']];
+				values.forEach(([tag, className, text]) => { const el = document.createElement(tag); el.className = className; el.textContent = text; anchor.append(el); });
+				const copy = document.createElement('span'); copy.className = 'service-copy'; const strong = document.createElement('strong'); strong.textContent = service.name; const small = document.createElement('small'); small.textContent = 'Custom shortcut · คลิกขวาหรือเพิ่มใหม่เพื่อแก้ไข'; copy.append(strong, small); anchor.insertBefore(copy, anchor.children[2]); list?.append(anchor);
+			}); filterServices();
+		};
 	renderCustom();
 		addForm?.addEventListener('submit', (event) => {
 			event.preventDefault();
@@ -193,13 +195,14 @@ const latestPosts = (await getCollection('blog'))
 		addForm?.querySelector('[name="host"]')?.addEventListener('input', (event) => event.currentTarget.setCustomValidity(''));
 		addDialog?.addEventListener('click', (event) => { if (event.target === addDialog) addDialog.close(); });
 
-	const focusTime = document.querySelector('[data-focus-time]'); const focusState = document.querySelector('[data-focus-state]'); const focusToggle = document.querySelector('[data-focus-toggle]'); const focusRing = document.querySelector('[data-timer-ring]');
 	const defaultTitle = document.title; let focusRemaining = 1500; let focusEnd = 0; let focusInterval;
+	const getStorage = (key, fallback) => { try { const v = localStorage.getItem(key); return v !== null ? v : fallback; } catch { return fallback; } };
+	const setStorage = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
+	const removeStorage = (key) => { try { localStorage.removeItem(key); } catch {} };
 	const renderFocus = () => { const minutes = Math.floor(focusRemaining / 60); const seconds = focusRemaining % 60; focusTime.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`; focusRing.style.setProperty('--progress', `${(1 - focusRemaining / 1500) * 360}deg`); };
-	const tickFocus = () => { focusRemaining = Math.max(0, Math.ceil((focusEnd - Date.now()) / 1000)); renderFocus(); if (focusRemaining <= 0) { clearInterval(focusInterval); focusEnd = 0; focusState.textContent = 'DONE'; focusToggle.textContent = 'Start again'; localStorage.removeItem('inontz-focus-end'); document.title = 'Focus complete · NON/LAB'; } };
-	focusToggle?.addEventListener('click', () => { if (focusEnd > Date.now()) { clearInterval(focusInterval); focusRemaining = Math.ceil((focusEnd - Date.now()) / 1000); focusEnd = 0; focusState.textContent = 'PAUSED'; focusToggle.textContent = 'Resume'; localStorage.removeItem('inontz-focus-end'); return; } if (focusRemaining <= 0) focusRemaining = 1500; document.title = defaultTitle; focusEnd = Date.now() + focusRemaining * 1000; localStorage.setItem('inontz-focus-end', String(focusEnd)); focusState.textContent = 'FOCUSING'; focusToggle.textContent = 'Pause'; tickFocus(); focusInterval = setInterval(tickFocus, 1000); });
-	document.querySelector('[data-focus-reset]')?.addEventListener('click', () => { clearInterval(focusInterval); focusRemaining = 1500; focusEnd = 0; document.title = defaultTitle; localStorage.removeItem('inontz-focus-end'); focusState.textContent = 'READY'; focusToggle.textContent = 'Start focus'; renderFocus(); });
-	const savedEnd = Number(localStorage.getItem('inontz-focus-end')); if (savedEnd > Date.now()) { focusEnd = savedEnd; focusState.textContent = 'FOCUSING'; focusToggle.textContent = 'Pause'; tickFocus(); focusInterval = setInterval(tickFocus, 1000); } else renderFocus();
+	const tickFocus = () => { focusRemaining = Math.max(0, Math.ceil((focusEnd - Date.now()) / 1000)); renderFocus(); if (focusRemaining <= 0) { clearInterval(focusInterval); focusEnd = 0; focusState.textContent = 'DONE'; focusToggle.textContent = 'Start again'; removeStorage('inontz-focus-end'); document.title = 'Focus complete · NON/LAB'; } };
+	focusToggle?.addEventListener('click', () => { if (focusEnd > Date.now()) { clearInterval(focusInterval); focusRemaining = Math.ceil((focusEnd - Date.now()) / 1000); focusEnd = 0; focusState.textContent = 'PAUSED'; focusToggle.textContent = 'Resume'; removeStorage('inontz-focus-end'); return; } if (focusRemaining <= 0) focusRemaining = 1500; document.title = defaultTitle; focusEnd = Date.now() + focusRemaining * 1000; setStorage('inontz-focus-end', String(focusEnd)); focusState.textContent = 'FOCUSING'; focusToggle.textContent = 'Pause'; tickFocus(); focusInterval = setInterval(tickFocus, 1000); });
+	const savedEnd = Number(getStorage('inontz-focus-end', '0')); if (savedEnd > Date.now()) { focusEnd = savedEnd; focusState.textContent = 'FOCUSING'; focusToggle.textContent = 'Pause'; tickFocus(); focusInterval = setInterval(tickFocus, 1000); } else renderFocus();
 
 	const arena = document.querySelector('[data-signal-arena]'); const node = document.querySelector('[data-signal-node]'); const signalScore = document.querySelector('[data-signal-score]'); const signalIntro = document.querySelector('[data-signal-intro]'); const signalStart = document.querySelector('[data-signal-start]'); let score = 0; let huntTimer;
 	const moveSignal = () => { node.style.left = `${8 + Math.random() * 78}%`; node.style.top = `${10 + Math.random() * 70}%`; };
