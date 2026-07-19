@@ -2,7 +2,7 @@
 	"name": "inontz-portal",
 	"compatibility_date": "2025-10-08",
 	"assets": {
-		"directory": "./dist"
+		"directory": "./out"
 	},
 	"observability": {
 		"enabled": true

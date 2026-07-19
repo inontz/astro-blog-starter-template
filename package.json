@@ -10,13 +10,17 @@
 		"publish": true
 	},
 	"dependencies": {
-		"@astrojs/mdx": "^7.0.3",
-		"@astrojs/rss": "^4.0.19",
-		"@astrojs/sitemap": "^3.7.3",
-		"astro": "^7.1.1",
-		"typescript": "5.9.3"
+		"gray-matter": "^4.0.3",
+		"next": "^15.5.0",
+		"next-mdx-remote": "^5.0.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
 	},
 	"devDependencies": {
+		"@types/node": "^22.0.0",
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"typescript": "5.9.3",
 		"wrangler": "^4.112.0"
 	},
 	"engines": {
@@ -24,13 +28,12 @@
 	},
 	"private": true,
 	"scripts": {
-		"astro": "astro",
-		"build": "astro build",
-		"cf-typegen": "wrangler types",
-		"check": "astro build && tsc && wrangler deploy --dry-run",
+		"build": "next build",
+		"check": "next build && tsc --noEmit && wrangler deploy --dry-run",
 		"deploy": "wrangler deploy",
-		"dev": "astro dev",
-		"preview": "astro build && wrangler dev"
+		"dev": "next dev",
+		"preview": "next build && next export",
+		"start": "next start"
 	},
 	"type": "module"
 }
