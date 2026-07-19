@@ -1,22 +1,19 @@
 {
 	"name": "inontz-portal",
 	"description": "NON/LAB personal portal for homelab services, AI tools, experiments, portfolio, and notes.",
-	"cloudflare": {
-		"label": "NON/LAB Personal Portal",
-		"products": [
-			"Workers"
-		],
-		"categories": [],
-		"publish": true
-	},
 	"dependencies": {
-		"@astrojs/mdx": "^7.0.3",
-		"@astrojs/rss": "^4.0.19",
-		"@astrojs/sitemap": "^3.7.3",
-		"astro": "^7.1.1",
-		"typescript": "5.9.3"
+		"gray-matter": "^4.0.3",
+		"next": "^15.5.0",
+		"next-mdx-remote": "^5.0.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
 	},
 	"devDependencies": {
+		"@types/node": "^22.0.0",
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"playwright": "^1.49.0",
+		"typescript": "5.9.3",
 		"wrangler": "^4.112.0"
 	},
 	"engines": {
@@ -24,13 +21,12 @@
 	},
 	"private": true,
 	"scripts": {
-		"astro": "astro",
-		"build": "astro build",
-		"cf-typegen": "wrangler types",
-		"check": "astro build && tsc && wrangler deploy --dry-run",
-		"deploy": "wrangler deploy",
-		"dev": "astro dev",
-		"preview": "astro build && wrangler dev"
+		"build": "next build",
+		"check": "next build && tsc --noEmit",
+		"deploy": "npm run build && npm run start",
+		"dev": "next dev",
+		"preview": "next start",
+		"start": "next start -p ${PORT:-3000}"
 	},
 	"type": "module"
 }

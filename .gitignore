@@ -136,12 +136,11 @@ web_modules/
 .parcel-cache
 
 # Next.js build output
-.next
-out
+.next/
+/out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
 
 # Gatsby files
 .cache/
@@ -199,4 +198,4 @@ dist
 !.dev.vars.example
 
 ### Astro ###
-.astro/
+
